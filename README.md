@@ -61,3 +61,73 @@ mvn clean package
 
 # 运行应用
 java -jar target/demo-trade-0.0.1-SNAPSHOT.jar
+```
+
+### 4. 访问服务
+应用启动后，可通过以下地址访问：
+
+- API接口： http://localhost:8080
+- 健康检查： http://localhost:8080/actuator/health
+
+## 项目结构
+```plaintext
+demo-trade/
+├── src/
+│   ├── main/
+│   │   ├── java/
+│   │   │   └── com/
+│   │   │       └── example/
+│   │   │           └── demotrade/
+│   │   │               ├── config/       # 配置类
+│   │   │               ├── controller/   # 控制器
+│   │   │               ├── entity/       # 实体类
+│   │   │               ├── repository/   # 数据访问层
+│   │   │               ├── service/      # 业务逻辑层
+│   │   │               └── DemoTradeApplication.java
+│   │   └── resources/
+│   │       ├── application.yml
+│   │       └── bootstrap.yml
+│   └── test/           # 测试代码
+├── pom.xml
+└── README.md
+```
+
+## 开发指南
+### API文档
+API文档将在项目完成后提供，包含所有接口的详细说明和使用示例。
+
+### 分布式事务
+本项目使用Seata进行分布式事务管理，开发时需注意：
+
+1. 在需要分布式事务的方法上添加 @GlobalTransactional 注解
+2. 确保相关的微服务都已接入Seata
+### 分布式锁
+使用Redisson实现分布式锁，示例代码
+
+```java
+@Autowired
+private RedissonClient redissonClient;
+
+public void processWithLock(String orderId) {
+    RLock lock = redissonClient.getLock("order:" + orderId);
+    try {
+        // 尝试获取锁，最多等待100秒，锁有效期为30秒
+        if (lock.tryLock(100, 30, TimeUnit.SECONDS)) {
+            try {
+                // 业务处理
+            } finally {
+                lock.unlock();
+            }
+        }
+    } catch (InterruptedException e) {
+        Thread.currentThread().interrupt();
+    }
+}
+```
+
+## 贡献指南
+1. Fork本仓库
+2. 创建您的特性分支 ( git checkout -b feature/amazing-feature )
+3. 提交您的更改 ( git commit -m 'Add some amazing feature' )
+4. 推送到分支 ( git push origin feature/amazing-feature )
+5. 创建一个Pull Request
